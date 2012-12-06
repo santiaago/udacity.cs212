@@ -103,12 +103,17 @@ puzzle1 = (
 # Your task is to define solve_parking_puzzle:
 
 N = 8
+def successors(s):
+    "return a dict of {state:action} pairs describing what can be reach from the  s state and how"
 
+def is_goal(s):
+    return False
 def solve_parking_puzzle(start, N=N):
     """Solve the puzzle described by the starting position (a tuple 
     of (object, locations) pairs).  Return a path of [state, action, ...]
     alternating items; an action is a pair (object, distance_moved),
     such as ('B', 16) to move 'B' two squares down on the N=8 grid."""
+    
     
 # But it would also be nice to have a simpler format to describe puzzles,
 # and a way to visualize states.
@@ -116,6 +121,13 @@ def solve_parking_puzzle(start, N=N):
 
 def locs(start, n, incr=1):
     "Return a tuple of n locations, starting at start and incrementing by incr."
+    t = (start,)
+    current = start + incr
+    for i in range(n-1):
+        t = t + (current,)
+        current = current + incr
+    return t
+
 
 
 def grid(cars, N=N):
@@ -126,7 +138,24 @@ def grid(cars, N=N):
     pair, like ('@', (31,)), to indicate this. The variable 'cars'  is a
     tuple of pairs like ('*', (26, 27)). The return result is a big tuple
     of the 'cars' pairs along with the walls and goal pairs."""
-
+    t = ()
+    goal = ('@',(N*N/2 -1,))
+    goal_index = N*N/2 -1
+    t = t + (goal,)
+    for pairs in cars:
+        t = (t) + (pairs,)
+    t_walls = tuple(range(N-1))
+    count = N - 1
+    while count < N*(N-1):
+        if count != goal_index:
+            t_walls = t_walls + (count,)
+        if count+1 != goal_index:
+            t_walls = t_walls + (count+1,)
+        count = count + N
+    t_walls = t_walls + tuple(range(count - (N-2),count +1))
+    t = t + (('|',t_walls),)
+    return t
+                              
 
 def show(state, N=N):
     "Print a representation of a state as an NxN grid."
@@ -168,6 +197,7 @@ puzzle3 = grid((
 
 # Here are the shortest_path_search and path_actions functions from the unit.
 # You may use these if you want, but you don't have to.
+
 
 def shortest_path_search(start, successors, is_goal):
     """Find the shortest path from start state to a state
