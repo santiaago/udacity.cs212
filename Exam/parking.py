@@ -104,10 +104,82 @@ puzzle1 = (
 
 N = 8
 def successors(s):
-    "return a dict of {state:action} pairs describing what can be reach from the  s state and how"
+    """return a dict of {state:action} pairs describing what can be reach from the  s state and how
+    In this case something like this:
+    {state1: action1, state2: action2,}
+    """
+    def filter_object(obj):
+        'filter objects that are the exit or a wall'
+        return obj not in ['@','|']
+    def move_h(loc):
+        d = abs(loc[0] - loc[1])
+        return d == 1
+    def move_v(loc):
+        d = abs(loc[0] - loc[1])
+        return d != 1
+    def is_space_empty(state,i):
+        for pair in state:
+            if i in pair[1]:
+                return False
+        return True
 
+    def successors_of_object(state,obj,loc):
+        print 'looking for successors of %s' %(obj)
+        res = ()
+        if move_h(loc):
+            print '%s moves left/right' %(obj)
+            extremity_left = loc[0]
+            extremity_right = loc[-1]
+            i = extremity_left
+            i = i - 1
+            while is_space_empty(state,i):
+                res = res + (i,)
+                i = i -1
+            print 'left:\t'+str(res)
+            j = extremity_right
+            j = j + 1
+            while is_space_empty(state,j):
+                res = res + (j,)
+                j = j + 1
+            print 'right:\t'+str(res)
+        else:
+            if not move_v(loc):
+                print 'warning: object %s does not move up/down nor left/right'
+            print '%s moves up/down' %(obj)
+            extremity_up = loc[0]
+            extremity_down = loc[-1]
+            i = extremity_up 
+            i = i - N
+            while is_space_empty(state,i):
+                res = res + (i,)
+                i = i - N
+            print 'up:\t' + str(res)
+            j = extremity_down
+            j = j + N
+            while is_space_empty(state,j):
+                res = res + (j,)
+                j = j + N
+            print 'down:\t'+str(res)
+        print 'successors for %s are:'%(obj)
+        print '--------------------'
+        print '\t'+str(res)
+        print '--------------------'
+        return res
+            
+    dict = {}
+    show(s)
+    print '--------------------'
+    for obj, loc in s:
+        if filter_object(obj):
+            show(s)
+            print 'object:\t' + str(obj)
+            print 'location:\t' + str(loc)
+            print 'successors of object %s are:' %(obj)
+            successors_of_object(s,obj,loc)
+            raw_input()
 def is_goal(s):
     return False
+
 def solve_parking_puzzle(start, N=N):
     """Solve the puzzle described by the starting position (a tuple 
     of (object, locations) pairs).  Return a path of [state, action, ...]
