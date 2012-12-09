@@ -134,43 +134,44 @@ def successors(s):
             if i in pair[1]:
                 return False
         return True
-    def populate_dict(obj,succ):
+    def populate_dict(car,succ):
         verbose = False
         if len(succ)==0:
             return
         state = dict(s)
-        current_car = state[obj]
+        car_pos = state[car]
         
         for x in succ:
             move = 0
-            if x > current_car[0]:
-                move = x - current_car[-1]
+            if x > car_pos[0]:
+                move = x - car_pos[-1]
             else:
-                move = x - current_car[0]
+                move = x - car_pos[0]
             t = tuple()
-            for pos in current_car :
+            for pos in car_pos :
                 t = t + (pos+move,)
             state1 = dict(s)
-            state1[obj] = t
-            dicto[tuple(state1.items())] = (obj,move)
+            state1[car] = t
+            dicto[tuple(state1.items())] = (car,move)
 
     def print_dict():
         print '--------------------'
         for k in dicto.keys():
             print dicto[k]   
     def successors_of_object(state,obj,loc):
+    def successors_of_car(state,car,loc):
         res = ()
         if move_h(loc):
             extremity_left = loc[0]
             extremity_right = loc[-1]
             i = extremity_left
             i = i - 1
-            while is_space_empty(state,obj,i):
+            while is_space_empty(state,car,i):
                 res = res + (i,)
                 i = i - 1
             j = extremity_right
             j = j + 1
-            while is_space_empty(state,obj,j):
+            while is_space_empty(state,car,j):
                 res = res + (j,)
                 j = j + 1
         else:
@@ -180,12 +181,12 @@ def successors(s):
             extremity_down = loc[-1]
             i = extremity_up 
             i = i - N
-            while is_space_empty(state,obj,i):
+            while is_space_empty(state,car,i):
                 res = res + (i,)
                 i = i - N
             j = extremity_down
             j = j + N
-            while is_space_empty(state,obj,j):
+            while is_space_empty(state,car,j):
                 res = res + (j,)
                 j = j + N
         return res
@@ -193,7 +194,7 @@ def successors(s):
     succ = ()    
     for car, loc in s:
         if filter_object(car):
-            succ = successors_of_object(s,car,loc)
+            succ = successors_of_car(s,car,loc)
             populate_dict(car,succ)
     return dicto.copy()
 
@@ -231,8 +232,8 @@ def solve_parking_puzzle(start, N=N):
             else:
                 print 'Action:', state, '\n'
                 
-    path = shortest_path_search(grid(start,N), successors, is_goal)
-    return path_actions(path)
+    return shortest_path_search(grid(start,N), successors, is_goal)
+    #return path_actions(path)
 
 
 # But it would also be nice to have a simpler format to describe puzzles,
@@ -248,8 +249,6 @@ def locs(start, n, incr=1):
         current = current + incr
     return t
 
-
-
 def grid(cars, N=N):
     """Return a tuple of (object, locations) pairs -- the format expected for
     this puzzle.  This function includes a wall pair, ('|', (0, ...)) to 
@@ -259,8 +258,14 @@ def grid(cars, N=N):
     tuple of pairs like ('*', (26, 27)). The return result is a big tuple
     of the 'cars' pairs along with the walls and goal pairs."""
     t = ()
-    goal = ('@',(N*N/2 -1,))
-    goal_index = N*N/2 -1
+    goal = ()
+    if (N%2)==0:
+        goal = ('@',(N*N/2 -1,)) 
+        goal_index = N*N/2 -1
+    else:
+        goal = ('@',((N-1)+(N*(N/2)),))
+        goal_index = (N-1)+(N*(N/2))
+    
     t = t + (goal,)
     for pairs in cars:
         t = (t) + (pairs,)
@@ -275,7 +280,6 @@ def grid(cars, N=N):
     t_walls = t_walls + tuple(range(count - (N-2),count +1))
     t = t + (('|',t_walls),)
     return t
-                              
 
 def show(state, N=N):
     "Print a representation of a state as an NxN grid."
@@ -314,6 +318,67 @@ puzzle3 = grid((
     ('O', locs(45, 2, N)),
     ('Y', locs(49, 3))))
 
+puzzle4 = grid((
+    ('*', locs(25, 2)),
+    ('B', locs(19, 2, N))))
+
+puzzle5 = grid((
+    ('*', locs(25, 2)),
+    ('B', locs(19, 2, N)),
+    ('Y', locs(41,6))))
+
+puzzle6 = (('@', (14,)),(('*',(11,12))), ('|', (0, 1, 2, 3, 4, 5, 9, 10, 15, 19, 20, 21, 22, 23, 24)))
+
+puzzle7 = grid((
+    ('*', locs(11, 2)),
+    ('B', locs(20, 2, N))
+    ),9)
+def test_puzzles():
+    print 'puzzle1'
+    show(puzzle1)
+    print solve_parking_puzzle(puzzle1)
+    print 'puzzle2'
+    show(puzzle2)    
+    print solve_parking_puzzle(puzzle2)
+    print 'puzzle3'
+    show(puzzle3)
+    print solve_parking_puzzle(puzzle3)
+    print 'puzzle4'
+    show(puzzle4)
+    print solve_parking_puzzle(puzzle4)
+    print 'puzzle5'
+    show(puzzle5)
+    print solve_parking_puzzle(puzzle5)
+    print 'puzzle6'
+    show(puzzle6,5)
+    print solve_parking_puzzle(puzzle6, 5)
+    print 'puzzle7'
+    show(puzzle7,9)
+    print solve_parking_puzzle(puzzle7, 9)
+def test_puzzles2():
+    'tests from Mon Z'
+    'http://forums.udacity.com/questions/5011598/parking-tests#cs212'
+    from itertools import cycle
+    cars = cycle('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    hcar = lambda start, l=2: (next(cars), locs(start, l))
+    vcar = lambda start, l=2: (next(cars), locs(start, l, N))
+    star = lambda start: ('*', locs(start, 2))
+    more_tests = [
+        grid((vcar(9), hcar(12, 3), vcar(20), vcar(22, 3), star(25), vcar(29), hcar(33, 3), vcar(43), hcar(45), hcar(49), hcar(52))),
+        grid((hcar(9), vcar(12, 3), vcar(14), vcar(17, 3), vcar(21, 3), star(26), vcar(30), hcar(34, 3), vcar(41), hcar(45), hcar(53))),
+        grid((vcar(9, 3), hcar(10), vcar(12, 3), star(26), vcar(35), hcar(36, 3), vcar(46), hcar(51, 3),)),
+        grid((vcar(9), hcar(10), vcar(14, 3), vcar(19, 3), star(25), hcar(36, 3), vcar(45), hcar(49, 3),)),
+        grid((hcar(9), vcar(11), vcar(12, 3), vcar(17, 3), star(26), hcar(34, 3), hcar(52, 3),)),
+        grid((vcar(11), hcar(12, 3), vcar(17), vcar(20, 3), hcar(21), star(26), vcar(34), hcar(37), vcar(41), hcar(43), vcar(46), hcar(50, 3),)),
+        grid((vcar(9, 3), hcar(10), vcar(18), vcar(19), star(28), vcar(13), vcar(22, 3), hcar(33, 3), vcar(36), vcar(43), hcar(49), hcar(52), hcar(45),))
+        ]
+
+    def show_and_solve(puzzle):
+        show(puzzle)
+        print path_actions(solve_parking_puzzle(puzzle))
+        print
+    for test in more_tests:
+        show_and_solve(test)
 
 # Here are the shortest_path_search and path_actions functions from the unit.
 # You may use these if you want, but you don't have to.
