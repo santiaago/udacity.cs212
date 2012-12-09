@@ -158,7 +158,6 @@ def successors(s):
         print '--------------------'
         for k in dicto.keys():
             print dicto[k]   
-    def successors_of_object(state,obj,loc):
     def successors_of_car(state,car,loc):
         res = ()
         if move_h(loc):
