@@ -108,85 +108,133 @@ def successors(s):
     In this case something like this:
     {state1: action1, state2: action2,}
     """
-    def filter_object(obj):
+    dicto = {}
+    
+    def filter_object(car):
         'filter objects that are the exit or a wall'
-        return obj not in ['@','|']
-    def move_h(loc):
-        d = abs(loc[0] - loc[1])
+        return car not in ['@','|']
+    def move_h(car):
+        'does this car moves horizontaly?'
+        d = abs(car[0] - car[1])
         return d == 1
-    def move_v(loc):
-        d = abs(loc[0] - loc[1])
+    def move_v(car):
+        'does this car moves verticaly'
+        d = abs(car[0] - car[1])
         return d != 1
-    def is_space_empty(state,i):
+    def is_space_empty(state,car,i):
+        '''checks if car can move to position i 
+         special case for car * as it can walk through 
+         the exit ie: @'''
+        if car =='*':
+            d = dict(state)
+            if i in d['@']:
+                return True
+        #normal cases
         for pair in state:
             if i in pair[1]:
                 return False
         return True
+    def populate_dict(obj,succ):
+        verbose = False
+        if len(succ)==0:
+            return
+        state = dict(s)
+        current_car = state[obj]
+        
+        for x in succ:
+            move = 0
+            if x > current_car[0]:
+                move = x - current_car[-1]
+            else:
+                move = x - current_car[0]
+            t = tuple()
+            for pos in current_car :
+                t = t + (pos+move,)
+            state1 = dict(s)
+            state1[obj] = t
+            dicto[tuple(state1.items())] = (obj,move)
 
+    def print_dict():
+        print '--------------------'
+        for k in dicto.keys():
+            print dicto[k]   
     def successors_of_object(state,obj,loc):
-        print 'looking for successors of %s' %(obj)
         res = ()
         if move_h(loc):
-            print '%s moves left/right' %(obj)
             extremity_left = loc[0]
             extremity_right = loc[-1]
             i = extremity_left
             i = i - 1
-            while is_space_empty(state,i):
+            while is_space_empty(state,obj,i):
                 res = res + (i,)
-                i = i -1
-            print 'left:\t'+str(res)
+                i = i - 1
             j = extremity_right
             j = j + 1
-            while is_space_empty(state,j):
+            while is_space_empty(state,obj,j):
                 res = res + (j,)
                 j = j + 1
-            print 'right:\t'+str(res)
         else:
             if not move_v(loc):
                 print 'warning: object %s does not move up/down nor left/right'
-            print '%s moves up/down' %(obj)
             extremity_up = loc[0]
             extremity_down = loc[-1]
             i = extremity_up 
             i = i - N
-            while is_space_empty(state,i):
+            while is_space_empty(state,obj,i):
                 res = res + (i,)
                 i = i - N
-            print 'up:\t' + str(res)
             j = extremity_down
             j = j + N
-            while is_space_empty(state,j):
+            while is_space_empty(state,obj,j):
                 res = res + (j,)
                 j = j + N
-            print 'down:\t'+str(res)
-        print 'successors for %s are:'%(obj)
-        print '--------------------'
-        print '\t'+str(res)
-        print '--------------------'
         return res
-            
-    dict = {}
-    show(s)
-    print '--------------------'
-    for obj, loc in s:
-        if filter_object(obj):
-            show(s)
-            print 'object:\t' + str(obj)
-            print 'location:\t' + str(loc)
-            print 'successors of object %s are:' %(obj)
-            successors_of_object(s,obj,loc)
-            raw_input()
-def is_goal(s):
-    return False
+    #successor function:
+    succ = ()    
+    for car, loc in s:
+        if filter_object(car):
+            succ = successors_of_object(s,car,loc)
+            populate_dict(car,succ)
+    return dicto.copy()
 
 def solve_parking_puzzle(start, N=N):
-    """Solve the puzzle described by the starting position (a tuple 
+    '''Solve the puzzle described by the starting position (a tuple 
     of (object, locations) pairs).  Return a path of [state, action, ...]
     alternating items; an action is a pair (object, distance_moved),
-    such as ('B', 16) to move 'B' two squares down on the N=8 grid."""
-    
-    
+    such as ('B', 16) to move 'B' two squares down on the N=8 grid.'''
+    def is_goal(s):
+        goal = ()
+        car = ()
+        for pairs in s:
+            if pairs[0]== '@':
+                goal = pairs
+            if pairs[0] == '*':
+                car = pairs
+        for pos in car[1]:
+            if pos in goal[1]:
+                return True
+        return False
+    #from Stuart Banks:
+    #http://forums.udacity.com/questions/5012700/animate-your-exam-4-solutions#cs212    
+    def animate_puzzle(puzzle):
+        from os import system
+        from time import sleep
+        'Shows a puzzle being solved step by step'
+        states = shortest_path_search(grid(puzzle,N),successors,is_goal)
+        system('clear')
+        print '\n'
+        for i, state in enumerate(states):
+            if i % 2 == 0:
+                show(state)
+                sleep(0.4)
+                system('clear')
+            else:
+                print 'Action:', state, '\n'
+                
+    path = shortest_path_search(grid(start,N), successors, is_goal)
+    return path_actions(path)
+
+
 # But it would also be nice to have a simpler format to describe puzzles,
 # and a way to visualize states.
 # You will do that by defining the following two functions:
@@ -270,7 +318,19 @@ puzzle3 = grid((
 # Here are the shortest_path_search and path_actions functions from the unit.
 # You may use these if you want, but you don't have to.
 
+"""
+The successor function needs to have two params:
+parameter 1: the current grid
+parameter 2: the car you want to analyse
 
+the successor function should return a dictionary of items
+
+
+state: the state of the car after action is performed
+action: the action done 
+example: ('A', -3)
+
+"""
 def shortest_path_search(start, successors, is_goal):
     """Find the shortest path from start state to a state
     such that is_goal(state) is true."""
