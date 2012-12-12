@@ -53,6 +53,7 @@ to get the name of a target that scores d.  When there are several choices,
 we must choose a double for the last dart, but for the others I prefer the
 easiest targets first: 'S' is easiest, then 'T', then 'D'.
 """
+ordered_points = sorted(set(range(0,21) + range(22,42,2) + range(21,63,3) + [25,50]))
 
 
 def double_out(total):
@@ -60,6 +61,48 @@ def double_out(total):
     where the length <= 3 and the final element is a double.
     If there is no solution, return None."""
     # your code here
+    #ordered_points = sorted(set(range(0,21) + range(22,42,2) + range(21,63,3)))
+    #print ordered_points
+    for dart1 in ordered_points:
+        for dart2 in ordered_points:
+            dart3 = total - (dart1 + dart2)
+            if (dart3%2)==0 and dart3 in ordered_points:
+                sol = [name(dart1),name(dart2),name_lastdart(dart3)]
+                if sol[-1] != None:
+                    if dart1 == 0 and dart2 == 0:
+                        return [sol[-1]]
+                    elif dart1 == 0:
+                        return sol[1:]
+                    else:
+                        return sol
+    print 'None'
+    return None
+
+def name(dart):
+    if dart <= 20:
+        return 'S'+str(dart)
+    elif dart == 50:
+        return 'DB'
+    elif dart == 25:
+        return 'SB'
+    elif dart <=40:
+        if (dart%2)==0:
+            return 'D'+str(dart/2)
+        else:
+            return 'T'+str(dart/3)
+    elif dart <=60:
+        return 'T'+str(dart/3)
+    print 'name Warning - dart: %s'%(dart)
+
+def name_lastdart(dart):
+    'last dart is already: dart%2 == 0'
+    if dart <= 20:
+        return 'D'+str(20/2)
+    elif dart == 50:
+        return 'DB'
+    elif dart <= 40:
+        return 'D'+str(dart/2)
+    print 'name_lastdart Warning - dart: %s'%(dart)
 
 """
 It is easy enough to say "170 points? Easy! Just hit T20, T20, DB."
