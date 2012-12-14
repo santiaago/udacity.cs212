@@ -66,16 +66,15 @@ def double_out(total):
     for dart1 in ordered_points:
         for dart2 in ordered_points:
             dart3 = total - (dart1 + dart2)
-            if (dart3%2)==0 and dart3 in ordered_points:
+            if (dart3%2)==0 and dart3 in ordered_points and name_lastdart(dart3) != None:
                 sol = [name(dart1),name(dart2),name_lastdart(dart3)]
-                if sol[-1] != None:
-                    if dart1 == 0 and dart2 == 0:
-                        return [sol[-1]]
-                    elif dart1 == 0:
-                        return sol[1:]
-                    else:
-                        return sol
-    print 'None'
+                if dart1 == 0 and dart2 == 0:
+                    return [sol[-1]]
+                elif dart1 == 0:
+                    return sol[1:]
+                else:
+                    return sol
+    #print 'None'
     return None
 
 def name(dart):
@@ -92,17 +91,18 @@ def name(dart):
             return 'T'+str(dart/3)
     elif dart <=60:
         return 'T'+str(dart/3)
-    print 'name Warning - dart: %s'%(dart)
+    #print 'name Warning - dart: %s'%(dart)
 
 def name_lastdart(dart):
     'last dart is already: dart%2 == 0'
-    if dart <= 20:
-        return 'D'+str(20/2)
+    if 0 < dart <= 20:
+        return 'D'+str(dart/2)
     elif dart == 50:
         return 'DB'
-    elif dart <= 40:
+    elif 20 < dart <= 40:
         return 'D'+str(dart/2)
-    print 'name_lastdart Warning - dart: %s'%(dart)
+    #print 'name_lastdart Warning - dart: %s'%(dart)
+    return None
 
 """
 It is easy enough to say "170 points? Easy! Just hit T20, T20, DB."
@@ -166,6 +166,88 @@ no guarantee that the game will end in a finite number of moves.
 def outcome(target, miss):
     "Return a probability distribution of [(target, probability)] pairs."
     #your code here
+    dicto = {}
+    print target
+    print miss
+    if isTriple(target):
+        #p1 <=> ring accuracy ok section accuracy ko or ok
+        #p2 <=> ring accuracy ko section accuracy ko or ok
+        
+        p1 = 1 - miss
+        p2 = miss
+
+        # keep ring accuracy calculate section accuracy (clockwise and counterclockwise)        
+        p11 = p1 * miss * 0.5
+        p12 = p1 * miss * 0.5
+        p10 = p1 - (p11 + p12)
+
+        key_Tcw = 'T' + str(cwTarget(target))
+        key_Tccw = 'T' + str(ccwTarget(target))
+        ket_T = target
+        
+        dicto[ket_T] = p10
+        dicto[key_Tcw] = p11
+        dicto[key_Tccw] = p12
+
+        # keep ring accuracy ko calculate section accuracy (clockwise and counterclockwise)
+        p21 = p2 * miss * 0.5
+        p22 = p2 * miss * 0.5
+        p20 = p2 - (p21 + p22)
+
+        key_Scw = 'S' + str(cwTarget(target))
+        key_Sccw = 'S' + str(ccwTarget(target))
+        key_S = 'S' + target[1:]
+
+        dicto[key_S] = p20
+        dicto[key_Scw] = p21
+        dicto[key_Sccw] = p22
+
+    elif isDouble(target):
+        'not implemented'
+    elif isSingle(target):
+        'not implemented'
+    elif isSingleBull(target):
+        'not implemented'
+    elif isDoubleBull(target):
+        'not implemented'
+    else:
+        print 'Error'
+
+    return dicto
+
+dart_board =  [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
+def cwTarget(target):
+    'next ClockWise target'
+    index = int(target[1:])
+    cw = 0
+    for i in range(len(dart_board)):
+        if dart_board[i] == index:
+            if i + 1 >= len(dart_board):
+                cw  = dart_board[0]
+                break
+            else:
+                cw = dart_board[i+1]
+                break
+    return cw
+def ccwTarget(target):
+    'next CounterClockWise target'
+    index = int(target[1:])
+    ccw = 0
+    for i in range(len(dart_board)):
+        if dart_board[i] == index:
+            ccw = dart_board[i-1]
+            break
+    return ccw
+def isTriple(target):
+    return target[0] == 'T'
+def isDouble(target):
+    return target != 'DB' and target[0] == 'D'
+def isSingle(target):
+    return target[0] == 'S'
+def isDoubleBull(target):
+    return target == 'DB'
+def isSingleBull(target):
+    return target == 'SB'
 
 def best_target(miss):
     "Return the target that maximizes the expected score."
@@ -191,3 +273,26 @@ def test_darts2():
              'S19': 0.016, 'S18': 0.016, 'S13': 0.016, 'S12': 0.016, 'S11': 0.016,
              'S10': 0.016, 'S17': 0.016, 'S16': 0.016, 'S15': 0.016, 'S14': 0.016,
              'S7': 0.016, 'SB': 0.64}))
+
+def test_identifiers():
+    assert isTriple('T20')
+    assert not isDouble('T20')
+    assert isDouble('D15')
+    assert isSingle('S3')
+    assert not isSingle('T2')
+    assert isSingleBull('SB')
+    assert not isSingleBull('DB')
+    assert isDoubleBull('DB')
+    assert not isDoubleBull('D20')
+    print 'all identifier tests passed!'
+
+def test_clock():
+    assert cwTarget('T20') == 1
+    assert ccwTarget('T20') == 5
+    assert cwTarget('D16') == 8
+    assert ccwTarget('D16') == 7
+    assert cwTarget('S5') == 20
+    assert ccwTarget('S5') == 12
+    print 'all clock tests passed!'
+
+ 
