@@ -167,8 +167,6 @@ def outcome(target, miss):
     "Return a probability distribution of [(target, probability)] pairs."
     #your code here
     dicto = {}
-    print target
-    print miss
     if isTriple(target):
         #p1 <=> ring accuracy ok section accuracy ko or ok
         #p2 <=> ring accuracy ko section accuracy ko or ok
@@ -203,9 +201,74 @@ def outcome(target, miss):
         dicto[key_Sccw] = p22
 
     elif isDouble(target):
-        'not implemented'
+        hit = 1 - miss
+        # hit ring accuracy hit or miss section
+        pD = hit * hit
+        pDcw = hit * miss * 0.5
+        pDccw = hit * miss * 0.5
+        # miss ring acc hit or miss section
+        pOFF = miss * 0.5
+        pS = miss * 0.5 * hit
+        pScw = miss * 0.5 * miss * 0.5
+        pSccw = miss * 0.5 * miss * 0.5
+        #keys
+        key_Dcw = 'D' +str(cwTarget(target))
+        key_Dccw = 'D' +str(ccwTarget(target))
+        key_D = target
+        key_Scw = 'S' +str(cwTarget(target))
+        key_Sccw = 'S' +str(ccwTarget(target))
+        key_S = 'S' + target[1:]
+        
+        dicto[key_D] = pD
+        dicto[key_Dcw] = pDcw
+        dicto[key_Dccw] = pDccw
+        
+        dicto['OFF'] = pOFF
+        
+        dicto[key_S] = pS
+        dicto[key_Scw] = pScw
+        dicto[key_Sccw] = pSccw
+
     elif isSingle(target):
-        'not implemented'
+        miss = miss/5.
+        hit = 1 - miss
+        # hit ring accuracy
+        pS = hit * hit
+        pScw = hit * miss * 0.5
+        pSccw = hit * miss * 0.5
+        # miss ring accuracy .5 to double .5 to triple
+        pD = miss * 0.5 * hit
+        pDcw = miss * 0.5 * miss * 0.5
+        pDccw = miss * 0.5 * miss * 0.5
+        
+        pT = miss * 0.5 * hit
+        pTcw = miss * 0.5 * miss * 0.5
+        pTccw = miss * 0.5 * miss * 0.5
+        #keys
+        key_S = target
+        key_Scw = 'S' + str(cwTarget(target))
+        key_Sccw = 'S' + str(ccwTarget(target))
+        
+        key_D = 'D' + target[1:]
+        key_Dcw = 'D' + str(cwTarget(target))
+        key_Dcc = 'D' + str(ccwTarget(target))
+
+        key_T = 'T' + target[1:]
+        key_Tcw = 'T' + str(cwTarget(target))
+        key_Tccw = 'T' + str(ccwTarget(target))
+        
+        dicto[key_S] = pS
+        dicto[key_Scw] = pScw
+        dicto[key_Sccw] = pSccw
+
+        dicto[key_D] = pD
+        dicto[key_Dcw] = pDcw
+        dicto[key_Dccw] = pDccw
+
+        dicto[key_T] = pT
+        dicto[key_Tcw] = pTcw
+        dicto[key_Tccw] = pTccw
+        
     elif isSingleBull(target):
         hit = 1 - miss
         # hit ring accuracy
@@ -228,7 +291,28 @@ def outcome(target, miss):
         dicto['DB'] = pDB
         
     elif isDoubleBull(target):
-        'not implemented'
+        hit = 1 - miss
+        #3 times less hits
+        hit = hit / 3.
+        miss = 1 - hit
+        # hit ring accuracy
+        pDB = hit * hit
+        pS01 = hit * miss
+        # miss ring accuracy
+        # 1/3 goes to SB or S; 2/3 goes to S or S
+        pS02 = miss * (2/3.) * hit
+        pS03 = miss * (2/3.) * miss
+
+        pSB = miss * (1/3.) * hit
+        pS04 = miss * (1/3.) * miss
+        
+        pS = pS01 + pS02 + pS03 + pS04
+        pS_unit = pS/20.
+        for d in dart_board:
+            dicto['S'+str(d)] = pS_unit
+        dicto['DB'] = pDB
+        dicto['SB'] = pSB
+
     else:
         print 'Error'
 
@@ -314,9 +398,17 @@ def test_clock():
     assert ccwTarget('S5') == 12
     print 'all clock tests passed!'
 
- 
-{'S9': 0.016, 'S8': 0.016, 'S3': 0.016, 'S2': 0.016, 'S1': 0.016,
-'DB': 0.04, 'S6': 0.016, 'S5': 0.016, 'S4': 0.016, 'S20': 0.016,
-'S19': 0.016, 'S18': 0.016, 'S13': 0.016, 'S12': 0.016, 'S11': 0.016,
-'S10': 0.016, 'S17': 0.016, 'S16': 0.016, 'S15': 0.016, 'S14': 0.016,
-'S7': 0.016, 'SB': 0.64}
+def test_outcomes():
+    assert same_outcome(outcome('D20',0.1),
+                        {'D20': 0.81, 'S1': 0.0025, 'D5': 0.045, 
+                         'S5': 0.0025, 'D1': 0.045, 'S20': 0.045, 'OFF': 0.05})
+    assert (same_outcome(outcome('DB',0.2),
+                        {'S9': 0.0432, 'S8': 0.0432, 'S3': 0.0432, 'S2': 0.0432, 'S1': 0.0432,
+                         'DB': 0.0711, 'S6': 0.0432, 'S5': 0.0432, 'S4': 0.0432, 'S20': 0.0432,
+                         'S19': 0.0432, 'S18': 0.0432, 'S13': 0.0432, 'S12': 0.0432, 'S11': 0.0432,
+                         'S10': 0.0432, 'S17': 0.0432, 'S16': 0.0432, 'S15': 0.0432, 'S14': 0.0432,
+                         'S7': 0.0432, 'SB': 0.0651}))
+    print 'all tests passed!'
+                        
+                       
+                        
