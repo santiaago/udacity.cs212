@@ -207,7 +207,26 @@ def outcome(target, miss):
     elif isSingle(target):
         'not implemented'
     elif isSingleBull(target):
-        'not implemented'
+        hit = 1 - miss
+        # hit ring accuracy
+        pSB = hit * hit
+        pS01 = hit * miss
+        # miss ring accuracy
+        #1/4 goes to DB 3/4 goes to S
+        pDB = miss * 0.25 * hit
+        pS02 = miss * 0.25 * miss
+
+        pS03 = miss * 0.75 * hit
+        pS04 = miss * 0.75 * miss
+        
+        pS = pS01 + pS02 + pS03 + pS04
+        
+        pS_unit = pS/20.
+        for d in dart_board:
+            dicto['S'+str(d)] = pS_unit
+        dicto['SB'] = pSB
+        dicto['DB'] = pDB
+        
     elif isDoubleBull(target):
         'not implemented'
     else:
@@ -243,7 +262,7 @@ def isTriple(target):
 def isDouble(target):
     return target != 'DB' and target[0] == 'D'
 def isSingle(target):
-    return target[0] == 'S'
+    return target[0] == 'S' and not isSingleBull(target)
 def isDoubleBull(target):
     return target == 'DB'
 def isSingleBull(target):
@@ -296,3 +315,8 @@ def test_clock():
     print 'all clock tests passed!'
 
  
+{'S9': 0.016, 'S8': 0.016, 'S3': 0.016, 'S2': 0.016, 'S1': 0.016,
+'DB': 0.04, 'S6': 0.016, 'S5': 0.016, 'S4': 0.016, 'S20': 0.016,
+'S19': 0.016, 'S18': 0.016, 'S13': 0.016, 'S12': 0.016, 'S11': 0.016,
+'S10': 0.016, 'S17': 0.016, 'S16': 0.016, 'S15': 0.016, 'S14': 0.016,
+'S7': 0.016, 'SB': 0.64}
