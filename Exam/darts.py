@@ -376,18 +376,17 @@ def best_target(miss):
     return res
     
 def dart_score(dart,p):
-    if dart == 'SB':
+    if isSingleBull(dart):
         return 25*p
-    elif dart == 'DB':
+    elif isDoubleBull(dart):
         return 50*p
-    elif dart[0] == 'T':
+    elif isTriple(dart):
         return int(dart[1:])*3*p
-    elif dart[0] == 'D':
+    elif isDouble(dart):
         return int(dart[1:]) * 2 * p
-    elif dart[0] == 'S':
+    elif isSingle(dart):
         return int(dart[1:]) * p
     else:#OFF
-        #print 'Error: score dart'+str(dart)
         return 0
 def same_outcome(dict1, dict2):
     "Two states are the same if all corresponding sets of locs are the same."
