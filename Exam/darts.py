@@ -251,7 +251,7 @@ def outcome(target, miss):
         
         key_D = 'D' + target[1:]
         key_Dcw = 'D' + str(cwTarget(target))
-        key_Dcc = 'D' + str(ccwTarget(target))
+        key_Dccw = 'D' + str(ccwTarget(target))
 
         key_T = 'T' + target[1:]
         key_Tcw = 'T' + str(cwTarget(target))
@@ -355,7 +355,40 @@ def isSingleBull(target):
 def best_target(miss):
     "Return the target that maximizes the expected score."
     #your code here
+    all_darts = []
+    for d in dart_board:
+        all_darts.append('S'+str(d))
+        all_darts.append('D'+str(d))        
+        all_darts.append('T'+str(d))
+    all_darts.append('SB')
+    all_darts.append('DB')
+
+    max_darts = {}
+    for d in all_darts:
+        out = outcome(d,miss)
+        expected = 0
+        for k in out.keys():
+            expected = expected + dart_score(k,out[k])
+            
+        max_darts[d] = expected
+
+    res = max(max_darts, key = lambda x: max_darts[x])
+    return res
     
+def dart_score(dart,p):
+    if dart == 'SB':
+        return 25*p
+    elif dart == 'DB':
+        return 50*p
+    elif dart[0] == 'T':
+        return int(dart[1:])*3*p
+    elif dart[0] == 'D':
+        return int(dart[1:]) * 2 * p
+    elif dart[0] == 'S':
+        return int(dart[1:]) * p
+    else:#OFF
+        #print 'Error: score dart'+str(dart)
+        return 0
 def same_outcome(dict1, dict2):
     "Two states are the same if all corresponding sets of locs are the same."
     return all(abs(dict1.get(key, 0) - dict2.get(key, 0)) <= 0.0001
@@ -397,6 +430,19 @@ def test_clock():
     assert cwTarget('S5') == 20
     assert ccwTarget('S5') == 12
     print 'all clock tests passed!'
+
+def test_scores():
+    assert dart_score('T20',1.0) == 60
+    assert dart_score('T20',0.9) == 60*0.9
+    assert dart_score('D10',1.0) == 20
+    assert dart_score('D10',0.9) == 20*0.9
+    assert dart_score('S2',1.0) == 2
+    assert dart_score('S2',0.9) == 2*0.9
+    assert dart_score('SB',1.0) == 25
+    assert dart_score('SB',0.9) == 25*0.9
+    assert dart_score('DB',1.0) == 50
+    assert dart_score('DB',0.9) == 50 * 0.9
+    print 'all scores passed!'
 
 def test_outcomes():
     assert same_outcome(outcome('D20',0.1),
